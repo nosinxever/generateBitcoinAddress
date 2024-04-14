@@ -18,13 +18,14 @@ import (
 	"golang.org/x/crypto/ripemd160"
 )
 
-const suffix = "youstr"
+const suffix = "yourStr"
 
 var count int64 // Atomic counter
 
 func main() {
 	start := time.Now()                  // Start time measurement
 	runtime.GOMAXPROCS(runtime.NumCPU()) // Use all available CPUs
+
 	var wg sync.WaitGroup
 
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -35,19 +36,25 @@ func main() {
 				address, segwitAddress, p2shSegwitAddress, wif := generateAddresses()
 				fmt.Printf("Function called %d times\n", atomic.LoadInt64(&count))
 
-				if strings.HasSuffix(address, suffix) || strings.HasSuffix(segwitAddress, suffix) || strings.HasSuffix(p2shSegwitAddress, suffix) {
+				if hasSuffixIgnoreCase(address, suffix) || hasSuffixIgnoreCase(segwitAddress, suffix) || hasSuffixIgnoreCase(p2shSegwitAddress, suffix) {
 					duration := time.Since(start) // Calculate duration
 					fmt.Printf("Legacy Address: %s\n", address)
 					fmt.Printf("SegWit Address: %s\n", segwitAddress)
 					fmt.Printf("P2SH-SegWit Address: %s\n", p2shSegwitAddress)
 					fmt.Printf("Private Key WIF: %s\n", wif)
 					fmt.Printf("Time taken: %s\n", duration)
+					fmt.Printf("Function called %d times\n", atomic.LoadInt64(&count))
+
 					return
 				}
 			}
 		}()
 	}
 	wg.Wait() // Wait for the first successful generation
+}
+
+func hasSuffixIgnoreCase(address, suffix string) bool {
+	return strings.HasSuffix(strings.ToLower(address), suffix)
 }
 
 func generateAddresses() (string, string, string, string) {
